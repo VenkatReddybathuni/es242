@@ -55,7 +55,7 @@ void generate_selections(int a[], int n, int k, int b[], void *data, void (*proc
  * The dictionary parameter is an array of words, sorted in dictionary order.
  * nwords is the number of words in this dictionary.
  */
-int In_dict(const char *source, const char *dict[], int nwords) {
+int isWord(const char *source, const char *dict[], int nwords) {
     int j=0;
     while(j<nwords){
         if (strcmp(source, dict[j]) == 0) {
@@ -63,38 +63,30 @@ int In_dict(const char *source, const char *dict[], int nwords) {
         }
         j++;
     }
-    // for (int i = 0; i < nwords; i++) {
-    //     if (strcmp(source, dict[i]) == 0) {
-    //         return 1;
-    //     }
-    // }
-    return 0; 
+    return 0;
 }
 
-void generate_splits_recursive(const char *source, const char *dict[], int nwords, char buf[], int l, int m, void *data, void (*process_split)(char buf[], void *data)) {
+void all_splits(const char *source, const char *dict[], int nwords, char buf[], int l, int m, void *data, void (*process_split)(char buf[], void *data)) {
     int n=strlen(source);
 
     if (m==n) {
         buf[l]='\0';
-        process_split(buf, data); 
+        process_split(buf, data);
         return;
     }
     int i=m;
     while(i<n){
-        char str[100]; 
+        char str[100];
         strncpy(str,source+m,i-m+1);
         str[i-m+1] ='\0';
 
-        if (In_dict(str, dict, nwords)) {
+        if (isWord(str, dict, nwords)) {
             if(l>0){
                 buf[l]=' ';
                 l++;
             }
-            
             strcpy(buf+l,str);
-
-            generate_splits_recursive(source, dict, nwords, buf, l+strlen(str), i+1, data, process_split);
-
+            all_splits(source, dict, nwords, buf, l+strlen(str), i+1, data, process_split);
             buf[l] = '\0';
         }
         i++;
@@ -102,7 +94,7 @@ void generate_splits_recursive(const char *source, const char *dict[], int nword
 }
 
 void generate_splits(const char *source, const char *dict[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data)) {
-    generate_splits_recursive(source, dict, nwords, buf, 0, 0, data, process_split);
+    all_splits(source, dict, nwords, buf, 0, 0, data, process_split);
 }
 
 /*
