@@ -76,7 +76,8 @@ void all_splits(const char *source, const char *dict[], int nwords, char buf[], 
     }
     int i=m;
     while(i<n){
-        char str[100];
+        int a1=2*n;
+        char str[a1];
         strncpy(str,source+m,i-m+1);
         str[i-m+1] ='\0';
 
