@@ -1,6 +1,8 @@
+//Team Members: Venkat, Vatsal, Vedanshi
 #include "test.h"
-
-#include <string.h> // for testing generate_splits()
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * Generate k-selections of a[0..n-1] in lexicographic order and call process_selection to process them.
@@ -12,18 +14,37 @@
  */
 void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data))
 {
-    b[0] = 2; b[1] = 1;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 6; b[1] = 5;
-    process_selection(b, 2, data);
+    int a1[n];
+    int b1[k];
+    for(int i=0;i<n;i++){
+        a1[i]=i;
+    }
+    for(int i=0;i<k;i++){
+        b1[i]=a1[i];
+    }
+    for(int j=0;j<k;j++){
+        b[j]=a[b1[j]];
+    }
+    process_selection(b, k, data);
+    while(1){
+        int i=k-1;
+        while(i>=0 && b1[i]==a1[n-k+i]){
+            i--;
+        }
+        if(i<0){
+            break;
+        }
+        b1[i]++;
+        int j=i+1;
+        while(j<k){
+            b1[j] = b1[j - 1] + 1;
+            j+=1;
+        }
+        for(int m=0;m<k;m++){
+            b[m]=a[b1[m]];
+        }
+        process_selection(b, k, data);
+    }
 }
 
 /*
@@ -34,12 +55,54 @@ void generate_selections(int a[], int n, int k, int b[], void *data, void (*proc
  * The dictionary parameter is an array of words, sorted in dictionary order.
  * nwords is the number of words in this dictionary.
  */
-void generate_splits(const char *source, const char *dictionary[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data))
-{
-    strcpy(buf, "art is toil");
-    process_split(buf, data);
-    strcpy(buf, "artist oil");
-    process_split(buf, data);
+int In_dict(const char *source, const char *dict[], int nwords) {
+    int j=0;
+    while(j<nwords){
+        if (strcmp(source, dict[j]) == 0) {
+            return 1;
+        }
+        j++;
+    }
+    // for (int i = 0; i < nwords; i++) {
+    //     if (strcmp(source, dict[i]) == 0) {
+    //         return 1;
+    //     }
+    // }
+    return 0; 
+}
+
+void generate_splits_recursive(const char *source, const char *dict[], int nwords, char buf[], int l, int m, void *data, void (*process_split)(char buf[], void *data)) {
+    int n=strlen(source);
+
+    if (m==n) {
+        buf[l]='\0';
+        process_split(buf, data); 
+        return;
+    }
+    int i=m;
+    while(i<n){
+        char str[100]; 
+        strncpy(str,source+m,i-m+1);
+        str[i-m+1] ='\0';
+
+        if (In_dict(str, dict, nwords)) {
+            if(l>0){
+                buf[l]=' ';
+                l++;
+            }
+            
+            strcpy(buf+l,str);
+
+            generate_splits_recursive(source, dict, nwords, buf, l+strlen(str), i+1, data, process_split);
+
+            buf[l] = '\0';
+        }
+        i++;
+    }
+}
+
+void generate_splits(const char *source, const char *dict[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data)) {
+    generate_splits_recursive(source, dict, nwords, buf, 0, 0, data, process_split);
 }
 
 /*
@@ -48,12 +111,28 @@ void generate_splits(const char *source, const char *dictionary[], int nwords, c
  */
 void previous_permutation(int a[], int n)
 {
-    a[0] = 1;
-    a[1] = 5;
-    a[2] = 4;
-    a[3] = 6;
-    a[4] = 3;
-    a[5] = 2;
+    int i=n-1;
+    while ((a[i]>a[i-1])&&(i!=0)){
+        i--;
+    }
+    if(i==0){
+        return;
+    }
+    int j=n-1;
+    while(a[j]>a[i-1]){
+        j--;
+    }
+    int t=a[i-1];
+    a[i-1]=a[j];
+    a[j]=t;
+    j=n-1;
+    while(i<j){
+        int temp=a[i];
+        a[i]=a[j];
+        a[j]=temp;
+        i++;
+        j--;
+    }
 }
 
 /* Write your tests here. Use the previous assignment for reference. */
