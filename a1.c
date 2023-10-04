@@ -200,18 +200,31 @@ void last_selection(int b[], int k, void *data)
 
 BEGIN_TEST(generate_selections) {
     int a[] = { 2, 1, 6, 5 };
-    int b[10];
+    int aa[] = { 1, 5, 3, 0, 1, 12, 4, 3, 6, 6 };
+    int bb[24];
+    for (int i = 0; i < 24; ++i) {
+        bb[i] = i;
+    }
+    int b[12];
+    int c = 0;
+
     state_t s2165 = { .index = 0, .err = 1, .first = 1 };
     generate_selections(a, 4, 2, b, &s2165, test_selections_2165);
     ASSERT(!s2165.err, "Failed on 2 1 6 5.");
-    int c = 0;
-    int aa[] = { 1, 5, 3, 0, 1, 12, 4, 3, 6, 6 };
+
     generate_selections(aa, 10, 5, b, &c, count_selections);
     ASSERT_EQ(c, 252, "Failed on 10C5.");
 
     selection_t s;
     generate_selections(aa, 10, 5, b, &s, last_selection);
     ASSERT_ARRAY_VALUES_EQ(s.b, 5, "Failed on last of 10C5.", 12, 4, 3, 6, 6);
+
+    c = 0;
+    generate_selections(bb, 24, 12, b, &c, count_selections);
+    ASSERT_EQ(c, 2704156, "Failed on 24C12");
+
+    generate_selections(bb, 24, 12, b, &s, last_selection);
+    ASSERT_ARRAY_VALUES_EQ(s.b, 12, "Failed on last of 24C12", 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
 } END_TEST
 
 void test_splits_art(char buf[], void *data)
@@ -238,8 +251,13 @@ void test_splits_art(char buf[], void *data)
     ++(s->index);
 }
 
+void count_splits(char buf[], void *data)
+{
+    int *c = (int *)data;
+    ++(*c);
+}
+
 BEGIN_TEST(generate_splits) {
-    const char *a = "artistoil";
     const char *dict[] = {
         "art",
         "artist",
@@ -247,20 +265,65 @@ BEGIN_TEST(generate_splits) {
         "oil",
         "toil"
     };
-    int nwords = 5;
+    const char *dict_a[] = {
+        "a",
+        "aa",
+        "aaa",
+        "aaaa",
+        "aaaaa",
+        "aaaaaa",
+        "aaaaaaa",
+        "aaaaaaaa",
+        "aaaaaaaaa",
+        "aaaaaaaaaa"
+    };
     state_t s = { .index = 0, .err = 1, .first = 1 };
-    char buf[256];
-    generate_splits(a, dict, nwords, buf, &s, test_splits_art);
-    ASSERT(!s.err, "Failed on 'artistoil'.");
+    char buf[34000];
+    char long_source[16000 + 1];
+    for (int i = 0; i < 16000; ++i) {
+        long_source[i] = 'a';
+    }
+    long_source[16000] = 0;
+    int c;
+
+    generate_splits("artistoil", dict, 5, buf, &s, test_splits_art);
+    ASSERT(!s.err, "Failed on \'artistoil\'.");
+
+    c = 0;
+    generate_splits("aaaaaaaaaa", dict_a, 1, buf, &c, count_splits);
+    ASSERT_EQ(c, 1, "Failed on \'aaaaaaaaaa\' with one split.");
+
+    c = 0;
+    generate_splits("aaaaaaaaaa", dict_a, 10, buf, &c, count_splits);
+    ASSERT_EQ(c, 512, "Failed on \'aaaaaaaaaa\' with binary splits.");
+
+    c = 0;
+    generate_splits(long_source, dict_a, 1, buf, &c, count_splits);
+    ASSERT_EQ(c, 1, "Failed on long source.");
+
+    c = 0;
+    generate_splits("aaaaaaaaaa", dict_a, 2, buf, &c, count_splits);
+    ASSERT_EQ(c, 89, "Failed on Fibonacci split.");
 } END_TEST
 
 BEGIN_TEST(previous_permutation) {
     int a[] = { 1, 5, 6, 2, 3, 4 };
     previous_permutation(a, 6);
     ASSERT_ARRAY_VALUES_EQ(a, 6, "Failed on 1 5 6 2 3 4.", 1, 5, 4, 6, 3, 2);
+
     int aa[] = { 1, 2, 3, 5, 4, 6 };
     previous_permutation(aa, 3); // 3 is correct.
     ASSERT_ARRAY_VALUES_EQ(aa, 3, "Failed on 1 2 3.", 1, 2, 3);
+
+    previous_permutation(aa, 1);
+    ASSERT_ARRAY_VALUES_EQ(aa, 6, "Failed on aa, 1.", 1, 2, 3, 5, 4, 6);
+
+    int bb[] = { 1, 1, 1, 1 };
+    previous_permutation(bb, 4);
+    ASSERT_ARRAY_VALUES_EQ(bb, 4, "Failed on 4 1s.", 1, 1, 1, 1);
+
+    previous_permutation(aa+3, 3);
+    ASSERT_ARRAY_VALUES_EQ(aa, 6, "Failed on last part of aa.", 1, 2, 3, 4, 6, 5);
 } END_TEST
 
 int main()
