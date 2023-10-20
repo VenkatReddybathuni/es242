@@ -376,7 +376,7 @@ int main()
         }
         if (has_won(board, current)) {
             print_board(board);
-            if(current==pl){
+            if(current=='R'){
                 printf("You won!!\n");
             }
             else{
