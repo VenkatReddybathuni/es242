@@ -83,7 +83,7 @@ move_t decode_move(uint8_t b)
 }
 int colord(board_t board, int col){
     if(board[3][col]=='.'){
-        return '.';
+        return 0;
     }
     else if(board[2][col]=='.'){
         if(board[3][col]=='R'){
@@ -357,9 +357,10 @@ int main()
     board_t board;
     move_t response;
     player_t current;
-    int pl;
+    player_t pl;
     printf("Enter: 'R' for player 1 or 'B' for player 2:\n");
     scanf("%c", &current);
+    pl=current;
     init_board(board);
     while (1) {
         print_board(board);
